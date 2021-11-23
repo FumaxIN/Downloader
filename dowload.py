@@ -10,7 +10,7 @@ import sys
 #             new_file.write(chunk)
 
 #r = requests.get("http://www.sampledocs.in/DownloadFiles/SampleFile?filename=sampledocs-%20dummy%20Video&ext=mp4", stream=True)  # timeout=0.001)
-url = "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg"
+url = str(input("Paste the URL to download a file: "))
 r = requests.get(url, stream=True)
 
 # d = r.headers['content-disposition']
