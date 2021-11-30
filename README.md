@@ -12,7 +12,7 @@ Downloader is a simple python script that can download any file from a given URL
 Download the file
 
 ```shell
-https://github.com/FumaxIN/Downloader.git
+git clone https://github.com/FumaxIN/Downloader.git
 ```
 Switch to the directory
 ```shell
