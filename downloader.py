@@ -7,44 +7,55 @@ import re
 import argparse
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('url', type=str)
-args = parser.parse_args()
+class Downloader:
+
+    def __init__(self, parser, args, r, size):
+        self.parser = parser
+        self.args = args
+
+        self.r = r
+        self.size = size
+
+        self.fname = ""
+
+    def f_details(self):
+        if 'Content-Disposition' in self.r.headers:
+            d = self.r.headers.get('Content-Disposition')
+            if "filename" in d:
+                file_name_re = re.findall('filename="([^"]*)"', d)[0]
+                print("Downloading:", file_name_re)
+                self.fname = file_name_re
+            else:
+                pass
+        else:
+            split_url = urlparse(self.args.url)
+            filename, file_ext = splitext(basename(split_url.path))
+            print("Downloading:", filename)
+
+            self.fname = filename
+
+        print("File Size = ", self.size)
+
+    def downloadBar(self):
+        dl = 0
+        total_length = int(self.size)
+        with open(self.fname, 'wb') as file:
+            for chunk in self.r.iter_content(10):
+                dl += len(chunk)
+                file.write(chunk)
+                done = int(50 * dl / total_length)
+                sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50 - done)))
+                sys.stdout.flush()
+
+        print("\n\n")
 
 
-r = requests.get(args.url, stream=True)
+p = argparse.ArgumentParser()
+p.add_argument('url', type=str)
+argss = p.parse_args()
+request = requests.get(argss.url, stream=True)
+data_size = request.headers['Content-Length']
 
-fname = ""
-
-if 'Content-Disposition' in r.headers:
-    d = r.headers.get('Content-Disposition')
-    pattern = re.compile('filename=(.+)')
-    if "filename" in d:
-        file_name_re = re.findall('filename="([^"]*)"', d)[0]
-        print(file_name_re)
-
-        fname = file_name_re
-    else:
-        split_url = urlparse(args.url)
-        filename, file_ext = splitext(basename(split_url.path))
-        output = str(filename+file_ext)
-        print("Filename = ", filename)
-
-        fname = filename
-
-size = r.headers['Content-Length']
-print("Visiting URL: ", args.url)
-print("File Size = ", size)
-
-
-dl = 0
-total_length = int(size)
-with open(fname, 'wb') as file:
-    for chunk in r.iter_content(10):
-        dl += len(chunk)
-        file.write(chunk)
-        done = int(50 * dl / total_length)
-        sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50 - done)))
-        sys.stdout.flush()
-
-print("\n\n")
+d = Downloader(p, argss, request, data_size)
+d.f_details()
+d.downloadBar()
